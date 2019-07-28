@@ -96,7 +96,7 @@ python Aaia.py -n all -m iam_sample_audit
 Aaia is influenced and inspired from various amazing open source tools. Huge Shoutout to :-
 
 * [Cloudmapper](https://github.com/duo-labs/cloudmapper)
-* [Cartography](https://github.com/lyft/cartography/tree/master/cartography)
+* [Cartography](https://github.com/lyft/cartography)
 * [BloodHound](https://github.com/BloodHoundAD/BloodHound)
 
 
