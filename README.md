@@ -45,7 +45,9 @@ python3 -m venv env
 ### Activate the virtual environment
 source env/bin/activate  
 
-Note: Aaia depends on pyjq library which is not stable in windows currently. Hence Aaia is not supported for Windows OS.
+**Note:** 
+Aaia depends on pyjq library which is not stable in windows currently. 
+Hence Aaia is not supported for Windows OS.
 
 ### Install the dependencies
 
@@ -64,7 +66,7 @@ Run:-
 ```
 ./Aaia_aws_collector.sh <profile_name>
 ```
-Note : This script has been intentionally written in shell as there might be cases during audit engagements where data has to be collected from a remote place. This script can be used to collect the data and the generated offline_data can be copied and work upon in another instance with Aaia installed. 
+**Note :** This script has been intentionally written in shell as there might be cases during audit engagements where data has to be collected from a remote place. This script can be used to collect the data and the generated "offline_data" folder can be copied and worked upon in another instance with Aaia installed. 
 
 Just replace the offline_data folder in the Aaia folder and start working.
 
