@@ -40,9 +40,9 @@ cd Aaia/
 python3 -m venv env
 
 ### Activate the virtual environment
-source env/bin/activate  # (In case of Linux / MAC)
+source env/bin/activate  
 
-env\Scripts\activate.bat # (In case of Windows)
+Note: Aaia depends on pyjq library which is not stable in windows currently. Hence Aaia is not supported for Windows OS.
 
 ### Install the dependencies
 
