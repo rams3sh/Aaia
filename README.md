@@ -64,6 +64,9 @@ Run:-
 ```
 ./Aaia_aws_collector.sh <profile_name>
 ```
+Note : This script has been intentionally written in shell as there might be cases during audit engagements where data has to be collected from a remote place. This script can be used to collect the data and the generated offline_data can be copied and work upon in another instance with Aaia installed. 
+
+Just replace the offline_data folder in the Aaia folder and start working.
 
 ### Loading the collected data to Neo4j DB 
 
