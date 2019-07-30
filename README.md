@@ -46,6 +46,8 @@ apt-get install awscli jq
 
 yum install awscli  jq
 
+#### Note: ####
+These packages are needed for Aaia_aws_collector.sh script. Ensure these packages are present in the base system from where the collector script is being run.
 
 ### Clone this repository
 git clone https://github.com/rams3sh/Aaia
