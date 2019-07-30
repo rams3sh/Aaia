@@ -7,9 +7,9 @@ Note: Expansion created post the name was decided :P
 
 ## **What does Aaia do ?**
 
-Aaia helps in visualizing the AWS IAM in a graphical fashion with help of Neo4j. This helps in identifying the outliers easily.Since it is based on neo4j , one can query the graph using cypher queries to find the anomalies.
+Aaia (pronounced as shown [here](https://translate.google.co.in/#view=home&op=translate&sl=ta&tl=en&text=Aaya) ) helps in visualizing AWS IAM and Organizations in a graph format with help of Neo4j. This helps in identifying the outliers easily. Since it is based on neo4j , one can query the graph using cypher queries to find the anomalies.
 
-Aaia also supports modules to programatically fetch data from neo4j database and process it in a custom fashion. This is mostly useful if any complex comparision or logic has to be applied to a given data which would otherwise be not easy through cypher queries.
+Aaia also supports modules to programatically fetch data from neo4j database and process it in a custom fashion. This is mostly useful if any complex comparision or logic has to be applied which otherwise would not be easy through cypher queries.
 
 Aaia was initially intended to be a tool to enumerate privelege esclation possibilities and find loop holes in AWS IAM. It was inspired from the quote by [@JohnLaTwC](https://twitter.com/JohnLaTwC)
 
@@ -20,7 +20,9 @@ Aaia was initially intended to be a tool to enumerate privelege esclation possib
 
 ## **Why the name "Aaia" ?**
 
-Aaia in [Tamil](https://en.wikipedia.org/wiki/Tamil_language) means grandmother. Aaia knows everything about the family. She can easily connect who is related to whom; and how ;and give you the connection within a split second. She is a living graph database. :P 
+Aaia in [Tamil](https://en.wikipedia.org/wiki/Tamil_language) means grandma. In general, Aaia knows everything about the family. She can easily connect who is related to whom; and how ;and give you the connection within a split second. 
+She is a living graph database. :P 
+
 Since "Aaia" (this tool) also does more or less the same, hence the name.
 
 
@@ -31,7 +33,18 @@ Since "Aaia" (this tool) also does more or less the same, hence the name.
 Instructions [here](https://neo4j.com/docs/operations-manual/current/installation/)
 
 Setup the username , password and bolt connection uri in Aaia.conf file. 
-An example is already present in Aaia.conf.
+An example format is given in Aaia.conf file already.
+
+
+### Install OS dependency ###
+
+#### Debian :- ####
+
+apt-get install awscli jq
+
+#### Redhat / Fedora / Centos / Amazon Linux :- ####
+
+yum install awscli  jq
 
 
 ### Clone this repository
@@ -57,7 +70,7 @@ python -m pip install -r requirements.txt
 
 ### Collecting the data from AWS
 
-First, Ensure you have aws credentials configured.
+Ensure you have aws credentials configured.
 Refer [this](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for help.
 
 Once the crendential is setup. 
@@ -66,9 +79,13 @@ Run:-
 ```
 ./Aaia_aws_collector.sh <profile_name>
 ```
-**Note :** This script has been intentionally written in shell as there might be cases during audit engagements where data has to be collected from a remote place. This script can be used to collect the data and the generated "offline_data" folder can be copied and worked upon in another instance with Aaia installed. 
+Ensure the output format of the aws profile being used for data collection is set to json as Aaia expects the data collected to be in json format. 
 
-Just replace the offline_data folder in the Aaia folder and start working.
+
+#### Note:- ####
+In case of a requirement where data has to be collected from another instance; copy "Aaia_aws_collector.sh" file to the remote instance , run it and copy the generated "offline_data" folder to the Aaia path in the instance where Aaia is setup and carry on with following steps.
+This will be helpful in cases of consulting or client audit.
+
 
 ### Loading the collected data to Neo4j DB 
 
@@ -78,13 +95,17 @@ python Aaia.py -n <profile_name> -a load_Data
 
 -n supports "all" as value which means load all data collected and present within offline_data folder.
 
+#### Note: ####
+Please ensure you do not have profile as "all" in the credentials file as it may conflict with the argument. :P 
+
+
 
 Now we are ready to use Aaia.
 
 
 ### Audit IAM through a custom module
 
-As of now , a sample custom module is given as a skeleton example. One can use this build to various other custom modules.
+As of now , a sample module is given as a skeleton example. One can use consider this as a reference for building custom modules.
 
 ```
 python Aaia.py -n all -m iam_sample_audit
@@ -93,7 +114,7 @@ python Aaia.py -n all -m iam_sample_audit
 
 ## Thanks to 
 
-Aaia is influenced and inspired from various amazing open source tools. Huge Shoutout to :-
+Aaia is influenced and inspired from various amazing open source projects. Huge Shoutout to :-
 
 * [Cloudmapper](https://github.com/duo-labs/cloudmapper)
 * [Cartography](https://github.com/lyft/cartography)
