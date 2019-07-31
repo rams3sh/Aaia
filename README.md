@@ -70,7 +70,42 @@ python -m pip install -r requirements.txt
 
 ## **Using Aaia**
 
-### Collecting the data from AWS
+### Setting up Permissions in AWS ###
+
+Aaia would require following AWS permissions for collector script to collect relevant data from AWS
+
+```
+iam:GenerateCredentialReport
+iam:GetCredentialReport
+iam:GetAccountAuthorizationDetails
+iam:ListUsers
+iam:GetUser
+iam:ListGroups
+iam:ListRoles
+iam:GetRole
+iam:GetPolicy
+iam:GetAccountPasswordPolicy
+iam:GetAccountSummary
+iam:ListAccountAliases
+organizations:ListAccountsForParent
+organizations:ListOrganizationalUnitsForParent
+organizations:DescribeOrganization
+organizations:ListRoots
+organizations:ListAccounts
+organizations:ListTagsForResource
+organizations:ListPolicies
+organizations:ListTargetsForPolicy
+organizations:DescribePolicy
+organizations:ListAWSServiceAccessForOrganization
+```
+
+"Organizations" related permissions can be ommitted. However , all the above mentioned "IAM" related permissions are necessary.
+
+Ensure the permissions are available to the user / role / any aws principal which will be used for collection of data for the collector script.
+
+
+
+### Collecting data from AWS
 
 Ensure you have aws credentials configured.
 Refer [this](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) for help.
@@ -107,7 +142,7 @@ Now we are ready to use Aaia.
 
 ### Audit IAM through a custom module
 
-As of now , a sample module is given as a skeleton example. One can use consider this as a reference for building custom modules.
+As of now , a sample module is given as a skeleton example. One can consider this as a reference for building custom modules.
 
 ```
 python Aaia.py -n all -m iam_sample_audit
