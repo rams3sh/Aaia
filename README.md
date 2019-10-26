@@ -127,7 +127,7 @@ This will be helpful in cases of consulting or client audit.
 ### Loading the collected data to Neo4j DB 
 
 ```
-python Aaia.py -n <profile_name> -a load_Data
+python Aaia.py -n <profile_name> -a load_data
 ```
 
 -n supports "all" as value which means load all data collected and present within offline_data folder.
