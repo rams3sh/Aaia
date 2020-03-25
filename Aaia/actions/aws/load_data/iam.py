@@ -62,28 +62,28 @@ def getAWSManagedPolicyVersions(data_path,account_name,policy_arn):
 	
 def loadAWSManagedPolicies(neo4j_session,data_path,account_name):
 	logger.info("[*] Loading AWS Managed Policies into neo4j instance for AWS account '%s'",account_name)
-	ingest_aws_managed_policies='''merge (A:AWSPolicy  {Arn :{Arn} } ) 
-								on create set A.AccountNo={AccountNo},
-								A.AttachmentCount={AttachmentCount},
-								A.CreateDate=datetime({CreateDate}), 
-								A.DefaultVersionId={DefaultVersionId}, 
-								A.IsAttachable={IsAttachable},
-								A.Path ={Path}, 
-								A.PermissionsBoundaryUsageCount={PermissionsBoundaryUsageCount},
-								A.PolicyId={PolicyId}, 
-								A.PolicyName={PolicyName}, 
-								A.Description={Description},
-								A.UpdateDate=datetime({UpdateDate})
-								on match set A.AccountNo={AccountNo},
-								A.AttachmentCount={AttachmentCount},
-								A.CreateDate=datetime({CreateDate}), 
-								A.DefaultVersionId={DefaultVersionId}, 
-								A.IsAttachable={IsAttachable},
-								A.Path ={Path}, 
-								A.PermissionsBoundaryUsageCount={PermissionsBoundaryUsageCount},
-								A.PolicyId={PolicyId}, 
-								A.PolicyName={PolicyName}, 
-								A.UpdateDate=datetime({UpdateDate})'''
+	ingest_aws_managed_policies='''merge (A:AWSPolicy  {Arn :$Arn } ) 
+								on create set A.AccountNo= $AccountNo,
+								A.AttachmentCount=$AttachmentCount,
+								A.CreateDate=datetime($CreateDate), 
+								A.DefaultVersionId=$DefaultVersionId, 
+								A.IsAttachable=$IsAttachable,
+								A.Path =$Path, 
+								A.PermissionsBoundaryUsageCount=$PermissionsBoundaryUsageCount,
+								A.PolicyId=$PolicyId, 
+								A.PolicyName=$PolicyName, 
+								A.Description=$Description,
+								A.UpdateDate=datetime($UpdateDate)
+								on match set A.AccountNo=$AccountNo,
+								A.AttachmentCount=$AttachmentCount,
+								A.CreateDate=datetime($CreateDate), 
+								A.DefaultVersionId=$DefaultVersionId, 
+								A.IsAttachable=$IsAttachable,
+								A.Path =$Path, 
+								A.PermissionsBoundaryUsageCount=$PermissionsBoundaryUsageCount,
+								A.PolicyId=$PolicyId, 
+								A.PolicyName=$PolicyName, 
+								A.UpdateDate=datetime($UpdateDate)'''
 						
 	managed_policies=getAWSManagedPolicies(data_path,account_name)
 	
@@ -94,44 +94,44 @@ def loadAWSManagedPolicies(neo4j_session,data_path,account_name):
 		
 		#Creating the Relationships between Policy Nodes and respective Resources (resources will be created if not present)
 		ingest_policy_statements='''	
-								merge (C {Arn:{ResourceArn}}) set C:AWSPolicyResource  
+								merge (C {Arn:$ResourceArn}) set C:AWSPolicyResource  
 								with C match (B:AWSPolicy),(C:AWSPolicyResource) 
-								where B.Arn={Arn} and C.Arn={ResourceArn} with B,C 
-								merge (B)-[A:AWSPolicyStatement {VersionId:{VersionId}}]->(C) 
+								where B.Arn=$Arn and C.Arn=$ResourceArn with B,C 
+								merge (B)-[A:AWSPolicyStatement {VersionId:$VersionId}]->(C) 
 								on create set 
-								A.SourcePolicyArn={Arn},
-								A.VersionCreateDate=datetime({VersionCreateDate}),
-								A.IsDefaultVersion={IsDefaultVersion},
-								A.VersionId={VersionId},
-								A.DocumentVersion={DocumentVersion},
-								A.DocumentId={DocumentId},
-								A.Effect={Effect} ,
-								A.ActionKey={ActionKey},
-								A.Action={Action},
-								A.Condition={Condition},
-								A.Sid={Sid},
-								A.ResourceKey={ResourceKey},
-								A.Resource={Resource},
-								A.Principal={Principal},
-								A.PrincipalKey={PrincipalKey},
-								A.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								A.SourcePolicyArn=$Arn,
+								A.VersionCreateDate=datetime($VersionCreateDate),
+								A.IsDefaultVersion=$IsDefaultVersion,
+								A.VersionId=$VersionId,
+								A.DocumentVersion=$DocumentVersion,
+								A.DocumentId=$DocumentId,
+								A.Effect=$Effect ,
+								A.ActionKey=$ActionKey,
+								A.Action=$Action,
+								A.Condition=$Condition,
+								A.Sid=$Sid,
+								A.ResourceKey=$ResourceKey,
+								A.Resource=$Resource,
+								A.Principal=$Principal,
+								A.PrincipalKey=$PrincipalKey,
+								A.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								on match set 
-								A.SourcePolicyArn={Arn},
-								A.VersionCreateDate=datetime({VersionCreateDate}),
-								A.IsDefaultVersion={IsDefaultVersion},
-								A.VersionId={VersionId},
-								A.DocumentVersion={DocumentVersion},
-								A.DocumentId={DocumentId},
-								A.Effect={Effect} ,
-								A.ActionKey={ActionKey},
-								A.Action={Action},
-								A.Condition={Condition},
-								A.Sid={Sid},
-								A.ResourceKey={ResourceKey},
-								A.Resource={Resource},
-								A.Principal={Principal},
-								A.PrincipalKey={PrincipalKey},
-								A.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								A.SourcePolicyArn=$Arn,
+								A.VersionCreateDate=datetime($VersionCreateDate),
+								A.IsDefaultVersion=$IsDefaultVersion,
+								A.VersionId=$VersionId,
+								A.DocumentVersion=$DocumentVersion,
+								A.DocumentId=$DocumentId,
+								A.Effect=$Effect ,
+								A.ActionKey=$ActionKey,
+								A.Action=$Action,
+								A.Condition=$Condition,
+								A.Sid=$Sid,
+								A.ResourceKey=$ResourceKey,
+								A.Resource=$Resource,
+								A.Principal=$Principal,
+								A.PrincipalKey=$PrincipalKey,
+								A.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 		#Getting the Policy Versions of each AWS Managed Policy
 		aws_managed_policy_version_list=getAWSManagedPolicyVersions(data_path,account_name,policy['Arn'])
@@ -163,9 +163,9 @@ def loadAWSManagedPolicies(neo4j_session,data_path,account_name):
 					neo4j_session.run(ingest_policy_statements,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],ResourceArn=resource,Arn=policy['Arn'],VersionId=policy_version_versionid,VersionCreateDate=policy_version_createdate,IsDefaultVersion=policy_version_isdefaultversion,DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),Condition=str(policy_statement_details['Condition']),Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),Principal=str(statement_principal).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),PrincipalKey=policy_statement_details['PrincipalKey'])
 			
 			if policy_version_isdefaultversion==True:
-				managed_policy_document_info_update_query='''merge (A:AWSPolicy {Arn:{Arn}})  
-															set A.DefaultDocumentId={DocumentId},
-															A.DefaultDocumentVersion={DocumentVersion}
+				managed_policy_document_info_update_query='''merge (A:AWSPolicy {Arn:$Arn})  
+															set A.DefaultDocumentId=$DocumentId,
+															A.DefaultDocumentVersion=$DocumentVersion
 															'''
 				neo4j_session.run(managed_policy_document_info_update_query,Arn=policy['Arn'],DocumentId=policy_document_details['Id'],DocumentVersion=policy_document_details['Version'])
 				
@@ -190,14 +190,14 @@ def loadPermissionBoundary(neo4j_session,data_path,account_name,principal_arn):
 	if principal_arn.__contains__("user/"):
 		principal_name=principal_arn.split("/")[-1]
 		policy_arns=getPermissionBoundaryPolicyArn(data_path,account_name,"User",principal_name)
-		load_permission_boundary='''match (user:AWSUser) where user.Arn={PrincipalArn} with user
-									match (policy:AWSPolicy) where policy.Arn={PolicyArn} with user,policy
+		load_permission_boundary='''match (user:AWSUser) where user.Arn=$PrincipalArn with user
+									match (policy:AWSPolicy) where policy.Arn=$PolicyArn with user,policy
 									merge (user)-[:AWSPolicyAttachment]->(policy)'''
 	elif principal_arn.__contains__("role/"):
 		principal_name=principal_arn.split("/")[-1]
 		policy_arns=getPermissionBoundaryPolicyArn(data_path,account_name,"Role",principal_name)
-		load_permission_boundary='''match (role:AWSRole) where role.Arn={PrincipalArn} with role
-									match (policy:AWSPolicy) where policy.Arn={PolicyArn} with role,policy
+		load_permission_boundary='''match (role:AWSRole) where role.Arn=$PrincipalArn with role
+									match (policy:AWSPolicy) where policy.Arn=$PolicyArn with role,policy
 									merge (role)-[:AWSPolicyAttachment]->(policy)'''
 	if policy_arns:
 		# getPermissionBoundaryPolicyArn returns the policy_arn in list. Wuld keep it as list so as to support 
@@ -282,57 +282,57 @@ def loadAWSUserNodes(neo4j_session,data_path,account_name):
 	#Hence the date format is already processed and returned as part of the getAWSUserNodes function
 
 	#Creating User Nodes
-	ingest_aws_users='''merge (A:AWSUser {Arn :{Arn}}) 
-						on match set A.UserName={UserName}, 
-						A.AccountNo={AccountNo}, 
-						A.UserId={UserId},
-						A.CreateDate={CreateDate}, 
-						A.PasswordLastUsed={PasswordLastUsed},
-						A.Tags={Tags}, 
-						A.Path={Path},
-						A.PasswordEnabled={PasswordEnabled},
-						A.PasswordLastChanged={PasswordLastChanged},
-						A.PasswordNextRotation={PasswordNextRotation},
-						A.MfaActive={MfaActive},
-						A.AccessKey1Active={AccessKey1Active},
-						A.AccessKey1LastRotated={AccessKey1LastRotated},
-						A.AccessKey1LastUsedDate={AccessKey1LastUsedDate},
-						A.AccessKey1LastUsedRegion={AccessKey1LastUsedRegion},
-						A.AccessKey1LastUsedService={AccessKey1LastUsedService},
-						A.AccessKey2Active={AccessKey2Active},
-						A.AccessKey2LastRotated={AccessKey2LastRotated},
-						A.AccessKey2LastUsedDate={AccessKey2LastUsedDate},
-						A.AccessKey2LastUsedRegion={AccessKey2LastUsedRegion},
-						A.AccessKey2LastUsedService={AccessKey2LastUsedService},
-						A.Cert1Active={Cert1Active},
-						A.Cert1LastRotated={Cert1LastRotated},
-						A.Cert2Active={Cert2Active},
-						A.Cert2LastRotated={Cert2LastRotated}
-						on create set A.UserName={UserName}, 
-						A.AccountNo={AccountNo}, 
-						A.UserId={UserId},
-						A.CreateDate={CreateDate}, 
-						A.PasswordLastUsed={PasswordLastUsed},
-						A.Tags={Tags}, 
-						A.Path={Path},
-						A.PasswordEnabled={PasswordEnabled},
-						A.PasswordLastChanged={PasswordLastChanged},
-						A.PasswordNextRotation={PasswordNextRotation},
-						A.MfaActive={MfaActive},
-						A.AccessKey1Active={AccessKey1Active},
-						A.AccessKey1LastRotated={AccessKey1LastRotated},
-						A.AccessKey1LastUsedDate={AccessKey1LastUsedDate},
-						A.AccessKey1LastUsedRegion={AccessKey1LastUsedRegion},
-						A.AccessKey1LastUsedService={AccessKey1LastUsedService},
-						A.AccessKey2Active={AccessKey2Active},
-						A.AccessKey2LastRotated={AccessKey2LastRotated},
-						A.AccessKey2LastUsedDate={AccessKey2LastUsedDate},
-						A.AccessKey2LastUsedRegion={AccessKey2LastUsedRegion},
-						A.AccessKey2LastUsedService={AccessKey2LastUsedService},
-						A.Cert1Active={Cert1Active},
-						A.Cert1LastRotated={Cert1LastRotated},
-						A.Cert2Active={Cert2Active},
-						A.Cert2LastRotated={Cert2LastRotated}'''
+	ingest_aws_users='''merge (A:AWSUser {Arn :$Arn}) 
+						on match set A.UserName=$UserName, 
+						A.AccountNo=$AccountNo, 
+						A.UserId=$UserId,
+						A.CreateDate=$CreateDate, 
+						A.PasswordLastUsed=$PasswordLastUsed,
+						A.Tags=$Tags, 
+						A.Path=$Path,
+						A.PasswordEnabled=$PasswordEnabled,
+						A.PasswordLastChanged=$PasswordLastChanged,
+						A.PasswordNextRotation=$PasswordNextRotation,
+						A.MfaActive=$MfaActive,
+						A.AccessKey1Active=$AccessKey1Active,
+						A.AccessKey1LastRotated=$AccessKey1LastRotated,
+						A.AccessKey1LastUsedDate=$AccessKey1LastUsedDate,
+						A.AccessKey1LastUsedRegion=$AccessKey1LastUsedRegion,
+						A.AccessKey1LastUsedService=$AccessKey1LastUsedService,
+						A.AccessKey2Active=$AccessKey2Active,
+						A.AccessKey2LastRotated=$AccessKey2LastRotated,
+						A.AccessKey2LastUsedDate=$AccessKey2LastUsedDate,
+						A.AccessKey2LastUsedRegion=$AccessKey2LastUsedRegion,
+						A.AccessKey2LastUsedService=$AccessKey2LastUsedService,
+						A.Cert1Active=$Cert1Active,
+						A.Cert1LastRotated=$Cert1LastRotated,
+						A.Cert2Active=$Cert2Active,
+						A.Cert2LastRotated=$Cert2LastRotated
+						on create set A.UserName=$UserName, 
+						A.AccountNo=$AccountNo, 
+						A.UserId=$UserId,
+						A.CreateDate=$CreateDate, 
+						A.PasswordLastUsed=$PasswordLastUsed,
+						A.Tags=$Tags, 
+						A.Path=$Path,
+						A.PasswordEnabled=$PasswordEnabled,
+						A.PasswordLastChanged=$PasswordLastChanged,
+						A.PasswordNextRotation=$PasswordNextRotation,
+						A.MfaActive=$MfaActive,
+						A.AccessKey1Active=$AccessKey1Active,
+						A.AccessKey1LastRotated=$AccessKey1LastRotated,
+						A.AccessKey1LastUsedDate=$AccessKey1LastUsedDate,
+						A.AccessKey1LastUsedRegion=$AccessKey1LastUsedRegion,
+						A.AccessKey1LastUsedService=$AccessKey1LastUsedService,
+						A.AccessKey2Active=$AccessKey2Active,
+						A.AccessKey2LastRotated=$AccessKey2LastRotated,
+						A.AccessKey2LastUsedDate=$AccessKey2LastUsedDate,
+						A.AccessKey2LastUsedRegion=$AccessKey2LastUsedRegion,
+						A.AccessKey2LastUsedService=$AccessKey2LastUsedService,
+						A.Cert1Active=$Cert1Active,
+						A.Cert1LastRotated=$Cert1LastRotated,
+						A.Cert2Active=$Cert2Active,
+						A.Cert2LastRotated=$Cert2LastRotated'''
 
 	#Getting the user data from collected json exports
 	users_data=getAWSUsers(data_path,account_name)
@@ -386,57 +386,57 @@ def loadAWSUserNodes(neo4j_session,data_path,account_name):
 	root_arn="arn:aws:iam::"+str(account_number)+":root"
 	credential_report_data=getCredentialReportDetails(data_path,account_name,root_arn)
 	#Creating User Root
-	ingest_aws_root_user='''merge (A:AWSUser:AWSRoot {Arn :{Arn}}) 
-						on match set A.UserName={UserName}, 
-						A.AccountNo={AccountNo}, 
-						A.UserId={UserId},
-						A.CreateDate={CreateDate}, 
-						A.PasswordLastUsed={PasswordLastUsed},
-						A.Tags={Tags}, 
-						A.Path={Path},
-						A.PasswordEnabled={PasswordEnabled},
-						A.PasswordLastChanged={PasswordLastChanged},
-						A.PasswordNextRotation={PasswordNextRotation},
-						A.MfaActive={MfaActive},
-						A.AccessKey1Active={AccessKey1Active},
-						A.AccessKey1LastRotated={AccessKey1LastRotated},
-						A.AccessKey1LastUsedDate={AccessKey1LastUsedDate},
-						A.AccessKey1LastUsedRegion={AccessKey1LastUsedRegion},
-						A.AccessKey1LastUsedService={AccessKey1LastUsedService},
-						A.AccessKey2Active={AccessKey2Active},
-						A.AccessKey2LastRotated={AccessKey2LastRotated},
-						A.AccessKey2LastUsedDate={AccessKey2LastUsedDate},
-						A.AccessKey2LastUsedRegion={AccessKey2LastUsedRegion},
-						A.AccessKey2LastUsedService={AccessKey2LastUsedService},
-						A.Cert1Active={Cert1Active},
-						A.Cert1LastRotated={Cert1LastRotated},
-						A.Cert2Active={Cert2Active},
-						A.Cert2LastRotated={Cert2LastRotated}
-						on create set A.UserName={UserName}, 
-						A.AccountNo={AccountNo}, 
-						A.UserId={UserId},
-						A.CreateDate={CreateDate}, 
-						A.PasswordLastUsed={PasswordLastUsed},
-						A.Tags={Tags}, 
-						A.Path={Path},
-						A.PasswordEnabled={PasswordEnabled},
-						A.PasswordLastChanged={PasswordLastChanged},
-						A.PasswordNextRotation={PasswordNextRotation},
-						A.MfaActive={MfaActive},
-						A.AccessKey1Active={AccessKey1Active},
-						A.AccessKey1LastRotated={AccessKey1LastRotated},
-						A.AccessKey1LastUsedDate={AccessKey1LastUsedDate},
-						A.AccessKey1LastUsedRegion={AccessKey1LastUsedRegion},
-						A.AccessKey1LastUsedService={AccessKey1LastUsedService},
-						A.AccessKey2Active={AccessKey2Active},
-						A.AccessKey2LastRotated={AccessKey2LastRotated},
-						A.AccessKey2LastUsedDate={AccessKey2LastUsedDate},
-						A.AccessKey2LastUsedRegion={AccessKey2LastUsedRegion},
-						A.AccessKey2LastUsedService={AccessKey2LastUsedService},
-						A.Cert1Active={Cert1Active},
-						A.Cert1LastRotated={Cert1LastRotated},
-						A.Cert2Active={Cert2Active},
-						A.Cert2LastRotated={Cert2LastRotated}'''
+	ingest_aws_root_user='''merge (A:AWSUser:AWSRoot {Arn :$Arn}) 
+						on match set A.UserName=$UserName, 
+						A.AccountNo=$AccountNo, 
+						A.UserId=$UserId,
+						A.CreateDate=$CreateDate, 
+						A.PasswordLastUsed=$PasswordLastUsed,
+						A.Tags=$Tags, 
+						A.Path=$Path,
+						A.PasswordEnabled=$PasswordEnabled,
+						A.PasswordLastChanged=$PasswordLastChanged,
+						A.PasswordNextRotation=$PasswordNextRotation,
+						A.MfaActive=$MfaActive,
+						A.AccessKey1Active=$AccessKey1Active,
+						A.AccessKey1LastRotated=$AccessKey1LastRotated,
+						A.AccessKey1LastUsedDate=$AccessKey1LastUsedDate,
+						A.AccessKey1LastUsedRegion=$AccessKey1LastUsedRegion,
+						A.AccessKey1LastUsedService=$AccessKey1LastUsedService,
+						A.AccessKey2Active=$AccessKey2Active,
+						A.AccessKey2LastRotated=$AccessKey2LastRotated,
+						A.AccessKey2LastUsedDate=$AccessKey2LastUsedDate,
+						A.AccessKey2LastUsedRegion=$AccessKey2LastUsedRegion,
+						A.AccessKey2LastUsedService=$AccessKey2LastUsedService,
+						A.Cert1Active=$Cert1Active,
+						A.Cert1LastRotated=$Cert1LastRotated,
+						A.Cert2Active=$Cert2Active,
+						A.Cert2LastRotated=$Cert2LastRotated
+						on create set A.UserName=$UserName, 
+						A.AccountNo=$AccountNo, 
+						A.UserId=$UserId,
+						A.CreateDate=$CreateDate, 
+						A.PasswordLastUsed=$PasswordLastUsed,
+						A.Tags=$Tags, 
+						A.Path=$Path,
+						A.PasswordEnabled=$PasswordEnabled,
+						A.PasswordLastChanged=$PasswordLastChanged,
+						A.PasswordNextRotation=$PasswordNextRotation,
+						A.MfaActive=$MfaActive,
+						A.AccessKey1Active=$AccessKey1Active,
+						A.AccessKey1LastRotated=$AccessKey1LastRotated,
+						A.AccessKey1LastUsedDate=$AccessKey1LastUsedDate,
+						A.AccessKey1LastUsedRegion=$AccessKey1LastUsedRegion,
+						A.AccessKey1LastUsedService=$AccessKey1LastUsedService,
+						A.AccessKey2Active=$AccessKey2Active,
+						A.AccessKey2LastRotated=$AccessKey2LastRotated,
+						A.AccessKey2LastUsedDate=$AccessKey2LastUsedDate,
+						A.AccessKey2LastUsedRegion=$AccessKey2LastUsedRegion,
+						A.AccessKey2LastUsedService=$AccessKey2LastUsedService,
+						A.Cert1Active=$Cert1Active,
+						A.Cert1LastRotated=$Cert1LastRotated,
+						A.Cert2Active=$Cert2Active,
+						A.Cert2LastRotated=$Cert2LastRotated'''
 	
 	neo4j_session.run(ingest_aws_root_user,UserName="root",AccountNo=account_number,Arn=root_arn,UserId="",CreateDate=credential_report_data['UserCreationTime'],PasswordLastUsed=credential_report_data['PasswordLastUsed'],Tags="",Path="",PasswordEnabled=credential_report_data['PasswordEnabled'],PasswordLastChanged=credential_report_data['PasswordLastChanged'],PasswordNextRotation=credential_report_data['PasswordNextRotation'],MfaActive=credential_report_data['MfaActive'],AccessKey1Active=credential_report_data['AccessKey1Active'],AccessKey1LastRotated=credential_report_data['AccessKey1LastRotated'],AccessKey1LastUsedDate=credential_report_data['AccessKey1LastUsedDate'],AccessKey1LastUsedRegion=credential_report_data['AccessKey1LastUsedRegion'],AccessKey1LastUsedService=credential_report_data['AccessKey1LastUsedService'],AccessKey2Active=credential_report_data['AccessKey2Active'],AccessKey2LastRotated=credential_report_data['AccessKey2LastRotated'],AccessKey2LastUsedDate=credential_report_data['AccessKey2LastUsedDate'],AccessKey2LastUsedRegion=credential_report_data['AccessKey2LastUsedRegion'],AccessKey2LastUsedService=credential_report_data['AccessKey2LastUsedService'],Cert1Active=credential_report_data['Cert1Active'],Cert1LastRotated=credential_report_data['Cert1LastRotated'],Cert2Active=credential_report_data['Cert2Active'],Cert2LastRotated=credential_report_data['Cert2LastRotated'])
 	logger.debug("[*] Completed loading of AWS User 'root' into neo4j for AWS account '%s' ",account_name)
@@ -446,8 +446,8 @@ def loadAWSUserNodes(neo4j_session,data_path,account_name):
 def loadAWSManagedPolicyRelations(neo4j_session,data_path,account_name,iam_resource_type):
 
 	logger.info("[*] Establishing "+iam_resource_type+" relations with AWS Managed Policies into neo4j instance for AWS account '%s'",account_name)
-	ingest_aws_managed_policy_relations='''match (A:AWSPolicy) where A.Arn={Arn} 
-										with A match (B) where B.Arn={PrincipalArn} 
+	ingest_aws_managed_policy_relations='''match (A:AWSPolicy) where A.Arn=$Arn 
+										with A match (B) where B.Arn=$PrincipalArn 
 										with A,B merge (B)-[:AWSPolicyAttachment]->(A)'''
 
 	jqQuery=""
@@ -492,24 +492,26 @@ def loadAWSInlinePolicies(neo4j_session,data_path,account_name,iam_resource_type
 	logger.info("[*] Loading AWS "+iam_resource_type+" Inline Policies into neo4j instance for AWS account '%s'",account_name)
 
 	ingest_aws_inline_policies='''merge (A:AWSPolicy:AWSInlinePolicy 
-								{PolicyName: {PolicyName},
-								SourceResourceArn: {SourceResourceArn}, 
-								SourceResourceType: {SourceResourceType},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
-								with A merge (C {Arn: {ResourceArn}}) set C:AWSPolicyResource 
+								{PolicyName: $PolicyName,
+								SourceResourceArn: $SourceResourceArn, 
+								SourceResourceType: $SourceResourceType,
+								DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId}) 
+								with A merge (C {Arn: $ResourceArn}) set C:AWSPolicyResource 
 								with A,C 
 								merge (A)-[B:AWSPolicyStatement{
-								DocumentVersion:{DocumentVersion},
-								DocumentId:{DocumentId},
-								Effect:{Effect} ,
-								ActionKey:{ActionKey},
-								Action:{Action},
-								Condition:{Condition},
-								Sid:{Sid},
-								ResourceKey:{ResourceKey},
-								Resource:{Resource},
-								Principal:{Principal},
-								PrincipalKey:{PrincipalKey},
-								Aaia_ExpandedAction: {Aaia_ExpandedAction}}]->(C)
+								DocumentVersion:$DocumentVersion,
+								DocumentId: $DocumentId,
+								Effect: $Effect ,
+								ActionKey:$ActionKey,
+								Action:$Action,
+								Condition:$Condition,
+								Sid:$Sid,
+								ResourceKey:$ResourceKey,
+								Resource:$Resource,
+								Principal:$Principal,
+								PrincipalKey:$PrincipalKey,
+								Aaia_ExpandedAction: $Aaia_ExpandedAction}]->(C)
 								'''
 	#For Finding Resource Arns which has Inline Policy Applicable to it 
 	jqQuery=""
@@ -551,7 +553,7 @@ def loadAWSInlinePolicies(neo4j_session,data_path,account_name,iam_resource_type
 					neo4j_session.run(ingest_aws_inline_policies,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PolicyName=policy_name,SourceResourceArn=iam_resource_arn,SourceResourceType=iam_resource_type,ResourceArn=resource,DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),Condition=str(policy_statement_details['Condition']),Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),Principal=str(statement_principal).replace("[","").replace("]","").replace("{","").replace("}","").replace("'",""),PrincipalKey=policy_statement_details['PrincipalKey'])
 		
 		#Match all the inline policies with respective SourceResource Arns
-		ingest_relationship_between_inlinePolicy_and_iamResourcearn='''match (A),(B:AWSInlinePolicy) where A.Arn ={Arn} and B.SourceResourceArn={Arn} with A,B merge (A)-[:AWSPolicyAttachment]->(B) set B.AccountNo=A.AccountNo'''
+		ingest_relationship_between_inlinePolicy_and_iamResourcearn='''match (A),(B:AWSInlinePolicy) where A.Arn = $Arn and B.SourceResourceArn=$Arn with A,B merge (A)-[:AWSPolicyAttachment]->(B) set B.AccountNo=A.AccountNo'''
 	
 		neo4j_session.run(ingest_relationship_between_inlinePolicy_and_iamResourcearn,Arn=iam_resource_arn)
 		
@@ -568,11 +570,11 @@ def getAWSGroups(data_path,account_name):
 def loadAWSGroupNodes(neo4j_session,data_path,account_name):
 	logger.info("[*] Loading AWS Groups into neo4j instance for AWS account '%s'",account_name)
 	
-	ingest_aws_groups='''merge (A:AWSGroup {Arn :{Arn}}) 
-	on match set A.GroupName={GroupName}, A.AccountNo={AccountNo}, A.GroupId={GroupId},
-	A.CreateDate=datetime({CreateDate}), A.Path={Path}
-	on create set A.GroupName={GroupName}, A.AccountNo={AccountNo}, A.GroupId={GroupId},
-	A.CreateDate=datetime({CreateDate}), A.Path={Path}'''
+	ingest_aws_groups='''merge (A:AWSGroup {Arn :$Arn}) 
+	on match set A.GroupName=$GroupName, A.AccountNo=$AccountNo, A.GroupId=$GroupId,
+	A.CreateDate=datetime($CreateDate), A.Path=$Path
+	on create set A.GroupName=$GroupName, A.AccountNo=$AccountNo, A.GroupId=$GroupId,
+	A.CreateDate=datetime($CreateDate), A.Path=$Path'''
 	
 	groups_data=getAWSGroups(data_path,account_name)
 	
@@ -584,13 +586,16 @@ def loadAWSGroupNodes(neo4j_session,data_path,account_name):
 def loadAWSUserGroupRelations(neo4j_session,data_path,account_name):
 	logger.info("[*] Establishing AWS User-Group Relations into neo4j instance for AWS account '%s'",account_name)
 	#Establishing Relations between Groups and Users
-	ingest_aws_group_user_relations="match (A:AWSUser),(B:AWSGroup) where A.UserName={UserName} and B.GroupName={GroupName} and A.AccountNo={AccountNo} and B.AccountNo={AccountNo} with A,B merge (A)-[:Member_Of]->(B)"
+	ingest_aws_group_user_relations="match (A:AWSUser),(B:AWSGroup) where A.UserName=$UserName and B.GroupName=$GroupName and A.AccountNo=$AccountNo and B.AccountNo=$AccountNo with A,B merge (A)-[:Member_Of]->(B)"
 	
 	jqQuery=".UserDetailList[] | {UserName: .UserName, Arn: .Arn,Groups:.GroupList}"
 	aws_user_group_relations=getAWSIamAccountAuthorizationDetailsInfo(data_path,account_name,jqQuery)
 	for aws_user_group_relation in aws_user_group_relations:
 		for group in aws_user_group_relation['Groups']:
-			neo4j_session.run(ingest_aws_group_user_relations,UserName=aws_user_group_relation['UserName'],AccountNo=str(aws_user_group_relation['Arn'].split(":")[4]),GroupName=group)
+			neo4j_session.run(ingest_aws_group_user_relations,
+							  UserName=aws_user_group_relation['UserName'],
+							  AccountNo=str(aws_user_group_relation['Arn'].split(":")[4]),
+							  GroupName=group)
 			
 	logger.info("[*] Completed establishing AWS User-Group Relations into neo4j instance for AWS account '%s'",account_name)
 
@@ -605,7 +610,7 @@ def getAWSRoles(data_path,account_name):
 def loadAWSRoleNodes(neo4j_session,data_path,account_name):
 	logger.info("[*] Loading AWS Roles into neo4j instance for AWS account '%s'",account_name)
 	
-	ingest_aws_roles="merge (A:AWSRole {Arn:{Arn}}) set A.AccountNo={AccountNo}, A.CreateDate= datetime({CreateDate}),A.MaxSessionDuration={MaxSessionDuration},A.Path= {Path},A.RoleId={RoleId}, A.RoleName={RoleName},A.Description ={Description}"
+	ingest_aws_roles="merge (A:AWSRole {Arn: $Arn}) set A.AccountNo=$AccountNo, A.CreateDate= datetime($CreateDate),A.MaxSessionDuration=$MaxSessionDuration,A.Path= $Path, A.RoleId=$RoleId, A.RoleName=$RoleName,A.Description =$Description"
 	
 	roles_data=getAWSRoles(data_path,account_name)
 	#Create Role Nodes
@@ -651,90 +656,92 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 						for principal in policy_statement_details['Principal'][key]:
 							if principal == "*":
 								ingest_assume_role_principal='''
-								merge (A {Arn:{PrincipalArn}}) set A:AWSPolicyPrincipal
-								with A match (B:AWSRole) where B.Arn={RoleArn} 
+								merge (A {Arn:$PrincipalArn}) set A:AWSPolicyPrincipal
+								with A match (B:AWSRole) where B.Arn=$RoleArn 
 								with A,B merge 
-								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,DocumentVersion:$DocumentVersion,DocumentId:$DocumentId}) 
 								with A,B,D merge (B)-[C:AWSPolicyAttachment]->(D) 
-								with A,D merge (D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+								with A,D merge (D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 								set  
-								D.AccountNo={AccountNo},
+								D.AccountNo=$AccountNo,
 								A:AWSPolicyPrincipal,
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect} ,
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}'''
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect ,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction'''
 															
 								neo4j_session.run(ingest_assume_role_principal,PrincipalArn=principal,RoleArn=role_data['Arn'],Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 							
 							elif re.search("^[A-Z0-9]{21}$",principal):
 							#In case RoleID/UserID is mentioned as principal
 								empty_record=True
-								finding_user_role_with_id='''match (A) where (("AWSUser" in labels(A)) or ("AWSRole" in labels(A))) and ((A.RoleId={Id}) or (A.UserId={Id})) return A.Arn'''
+								finding_user_role_with_id='''match (A) where (("AWSUser" in labels(A)) or ("AWSRole" in labels(A))) and ((A.RoleId=$Id) or (A.UserId=$Id)) return A.Arn'''
 								response=neo4j_session.run(finding_user_role_with_id,Id=principal)
 								for record in response:
 									empty_record=False
 									identify_and_match_principal='''
-									match(A) where A.Arn={PrincipalArn} 
+									match(A) where A.Arn=$PrincipalArn 
 									with A match (B:AWSRole) where
-									B.Arn={RoleArn} with A,B
+									B.Arn=$RoleArn with A,B
 									merge 
-									(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}})
+									(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,DocumentVersion:$DocumentVersion,DocumentId:$DocumentId})
 									with A,B,D merge (B)-[C:AWSPolicyAttachment]->(D) 
-									with A,D merge (D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+									with A,D merge (D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 									set  
 									A:AWSPolicyPrincipal,
-									D.AccountNo={AccountNo},
-									E.SourceRoleArn={SourceRoleArn},
-									E.DocumentVersion={DocumentVersion},
-									E.DocumentId={DocumentId},
-									E.Effect={Effect} ,
-									E.ActionKey={ActionKey},
-									E.Action={Action},
-									E.Condition={Condition},
-									E.Sid={Sid},
-									E.ResourceKey={ResourceKey},
-									E.Resource={Resource},
-									E.Principal={Principal},
-									E.PrincipalKey={PrincipalKey},
-									E.Aaia_ExpandedAction={Aaia_ExpandedAction}'''
+									D.AccountNo=$AccountNo,
+									E.SourceRoleArn=$SourceRoleArn,
+									E.DocumentVersion=$DocumentVersion,
+									E.DocumentId=$DocumentId,
+									E.Effect=$Effect,
+									E.ActionKey=$ActionKey,
+									E.Action=$Action,
+									E.Condition=$Condition,
+									E.Sid=$Sid,
+									E.ResourceKey=$ResourceKey,
+									E.Resource=$Resource,
+									E.Principal=$Principal,
+									E.PrincipalKey=$PrincipalKey,
+									E.Aaia_ExpandedAction=$Aaia_ExpandedAction'''
 									
 									neo4j_session.run(identify_and_match_principal,PrincipalArn=record['A.Arn'],RoleArn=role_data['Arn'],Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 								
 								#In case the Id does not match with any existing roles/users, it returns an empty record
 								if empty_record:
 									create_principal_query='''merge 
-									(A:AWSPolicyPrincipal {Arn:{PrincipalArn}})		
+									(A:AWSPolicyPrincipal {Arn:$PrincipalArn})		
 									with A 
-									match (B:AWSRole) where B.Arn={RoleArn} 
+									match (B:AWSRole) where B.Arn=$RoleArn 
 									with A,B merge 
-									(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+									(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,
+									DocumentVersion:$DocumentVersion,
+									DocumentId:$DocumentId}) 
 									with A,B,D merge (B)-[C:AWSPolicyAttachment]->(D) 
-									with A,D merge (D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+									with A,D merge (D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 									set 
-									D.AccountNo={AccountNo},
-									E.SourceRoleArn={SourceRoleArn},
-									E.DocumentVersion={DocumentVersion},
-									E.DocumentId={DocumentId},
-									E.Effect={Effect} ,
-									E.ActionKey={ActionKey},
-									E.Action={Action},
-									E.Condition={Condition},
-									E.Sid={Sid},
-									E.ResourceKey={ResourceKey},
-									E.Resource={Resource},
-									E.Principal={Principal},
-									E.PrincipalKey={PrincipalKey},
-									E.Aaia_ExpandedAction={Aaia_ExpandedAction}'''
+									D.AccountNo=$AccountNo,
+									E.SourceRoleArn=$SourceRoleArn,
+									E.DocumentVersion=$DocumentVersion,
+									E.DocumentId=$DocumentId,
+									E.Effect= $Effect ,
+									E.ActionKey=$ActionKey,
+									E.Action=$Action,
+									E.Condition=$Condition,
+									E.Sid=$Sid,
+									E.ResourceKey=$ResourceKey,
+									E.Resource=$Resource,
+									E.Principal=$Principal,
+									E.PrincipalKey=$PrincipalKey,
+									E.Aaia_ExpandedAction=$Aaia_ExpandedAction'''
 									
 									neo4j_session.run(create_principal_query,PrincipalArn=principal,RoleArn=role_data['Arn'],Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 								
@@ -742,29 +749,32 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 							#Ref:https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html
 							elif principal == arn.ARN(principal).account_number or arn.ARN(principal).root:
 							
-								ingest_assume_role_principal='''merge (A:AWSAccount {AccountNo:{PrincipalAccountNo}}) set A.Arn={Arn}
+								ingest_assume_role_principal='''merge (A:AWSAccount {AccountNo:$PrincipalAccountNo}) set A.Arn=$Arn
 								set A:AWSPolicyPrincipal 
-								with A match (B:AWSRole) where B.Arn={RoleArn} 
-								with A,B merge (D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+								with A match (B:AWSRole) where B.Arn=$RoleArn 
+								with A,B merge (D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",
+								SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId}) 
 								with A,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) 
 								with A,D 
-								merge (D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+								merge (D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 								set
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect} ,
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalAccountNo=arn.ARN(principal).account_number,Arn=principal,RoleArn=role_data['Arn'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 							
@@ -775,91 +785,102 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 								#In this case session is also involved , so from node creation standpoint in neo4j
 								#This case has to be dealt with separately. Split ("/" lentgh will be 3 in this case
 								
-								ingest_assume_role_principal='''merge (R:AWSRole {Arn:{PrincipalArn},RoleName:{PrincipalName}}) set R:AWSPolicyPrincipal, 
-								R.AccountNo={PrincipalAccountNo} with R 
-								merge (A:AWSAccount {AccountNo:{AccountNo}}) 
+								ingest_assume_role_principal='''merge (R:AWSRole {Arn:$PrincipalArn,
+								RoleName:$PrincipalName}) set R:AWSPolicyPrincipal, 
+								R.AccountNo=$PrincipalAccountNo with R 
+								merge (A:AWSAccount {AccountNo:$AccountNo}) 
 								with R,A merge (R)-[:Belongs_To_Account]->(A)
 								with R match (B:AWSRole) where 
-								B.Arn={RoleArn} with R,B 
-								merge (D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) with R,B,D merge
+								B.Arn=$RoleArn with R,B 
+								merge (D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",
+								SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId}) with R,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with R,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(R) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(R) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect} ,
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalAccountNo=arn.ARN(principal).account_number,PrincipalArn=principal,PrincipalName=arn.ARN(principal).name.split("/")[1],RoleArn=role_data['Arn'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 								
 							#In case of role with session
 							#RoleSessionName property is added to check if only specific session of the role is allowed to assume the role as part of AWS Statement
 							elif arn.ARN(principal).name.startswith("role") and len(arn.ARN(principal).name.split("/"))==3:
-								ingest_assume_role_principal='''merge (R:AWSRole {Arn:{PrincipalArn},RoleName:{PrincipalName}}) set R:AWSPolicyPrincipal, 
-								R.AccountNo={PrincipalAccountNo} with R 
-								merge (A:AWSAccount {AccountNo:{AccountNo}}) 
+								ingest_assume_role_principal='''merge (R:AWSRole {Arn:$PrincipalArn,RoleName:$PrincipalName}) 
+								set R:AWSPolicyPrincipal, 
+								R.AccountNo=$PrincipalAccountNo with R 
+								merge (A:AWSAccount {AccountNo:$AccountNo}) 
 								with R,A merge (R)-[:Belongs_To_Account]->(A) 
 								with R match (B:AWSRole) where 
-								B.Arn={RoleArn} with R,B 
-								merge (D:AWSPolicy:AWSAssumeRolePolicy:AWSSessionPolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) set D.Aaia_SessionName={SessionName} with R,B,D merge
+								B.Arn=$RoleArn with R,B 
+								merge (D:AWSPolicy:AWSAssumeRolePolicy:AWSSessionPolicy 
+								{Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId}) 
+								set D.Aaia_SessionName=$SessionName with R,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with R,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(R) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(R) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect},
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 								
 								neo4j_session.run(ingest_assume_role_principal,PrincipalAccountNo=arn.ARN(principal).account_number,SessionName=arn.ARN(principal).name.split("/")[2],PrincipalArn=principal,PrincipalName=arn.ARN(principal).name.split("/")[1],RoleArn=role_data['Arn'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalKey=policy_statement_details['PrincipalKey'])
 							#In case of user
 							elif arn.ARN(principal).name.startswith("user"):
-								ingest_assume_role_principal='''merge (U:AWSUser {Arn:{PrincipalArn}}) set U:AWSPolicyPrincipal, 
-								U.AccountNo={PrincipalAccountNo}, U.Name={PrincipalName} with U 
-								merge (A:AWSAccount {AccountNo:{AccountNo}}) 
+								ingest_assume_role_principal='''merge (U:AWSUser {Arn:$PrincipalArn}) set U:AWSPolicyPrincipal, 
+								U.AccountNo=$PrincipalAccountNo, U.Name=$PrincipalName with U 
+								merge (A:AWSAccount {AccountNo:$AccountNo}) 
 								with U,A merge (U)-[:Belongs_To_Account]->(A)
 								with U match (B:AWSRole) where 
-								B.Arn={RoleArn} with U,B 
+								B.Arn=$RoleArn with U,B 
 								merge 
-								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+								(D:AWSPolicy:AWSAssumeRolePolicy 
+								{Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,DocumentId:$DocumentId}) 
 								with U,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with U,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(U) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(U) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect},
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalAccountNo=arn.ARN(principal).account_number,PrincipalArn=principal,PrincipalName=arn.ARN(principal).name.split("/")[1],RoleArn=role_data['Arn'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 							#Else raise exception returning type of principal unknown with principal details
@@ -867,29 +888,30 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 								raise ValueError('Unknown AWSPrincipal : "AWS":'+principal)
 					
 					elif key =="Service":
-						ingest_assume_role_principal='''merge (A:AWSPolicyPrincipal:AWSService {ServiceName:{ServiceName},Arn:{PrincipalArn}}) with A match (B:AWSRole) 
+						ingest_assume_role_principal='''merge (A:AWSPolicyPrincipal:AWSService {ServiceName:$ServiceName,Arn:$PrincipalArn}) with A match (B:AWSRole) 
 						where 
-								B.Arn={RoleArn} with A,B 
+								B.Arn=$RoleArn with A,B 
 								merge 
-								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,DocumentId:$DocumentId}) 
 								with A,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with A,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect},
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 						'''
 						for principal in policy_statement_details['Principal'][key]:
 						
@@ -905,60 +927,64 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 								if principal == "cognito-identity.amazonaws.com":
 									set_aws_service_label=":AWSService"
 								
-								ingest_assume_role_principal='''merge (A:AWSPolicyPrincipal {Name:{FederationName},Arn:{PrincipalArn}}) set A:AWSFederated'''+set_aws_service_label+''' with A match (B:AWSRole) 
+								ingest_assume_role_principal='''merge (A:AWSPolicyPrincipal {Name:$FederationName,Arn:$PrincipalArn) set A:AWSFederated'''+set_aws_service_label+''' with A match (B:AWSRole) 
 								where 
-								B.Arn={RoleArn} with A,B 
+								B.Arn=$RoleArn with A,B 
 								merge 
-								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}}) 
+								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,
+								DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId}) 
 								with A,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with A,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(A) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(A) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect},
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}'''
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource= $Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey= $PrincipalKey,
+								E.Aaia_ExpandedAction= $Aaia_ExpandedAction'''
 								
 								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],FederationName=principal,PrincipalArn=principal,RoleArn=role_data['Arn'],AccountNo=role_data['Arn'].split(":")[4],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 								
 							#In case of AWS SAML Provider
 							elif arn.ARN(principal).account_number !=None:
-								ingest_assume_role_principal='''merge (S:AWSSAMLProvider {Arn:{PrincipalArn}, PrincipalAccountNo:{AccountNo}}) set S.Name={PrincipalName}, S:AWSPolicyPrincipal:AWSFederated
-								with S merge (A:AWSAccount {AccountNo:{AccountNo}})
+								ingest_assume_role_principal='''merge (S:AWSSAMLProvider {Arn:$PrincipalArn, 
+								PrincipalAccountNo:$AccountNo}) set S.Name=$PrincipalName}, S:AWSPolicyPrincipal:AWSFederated
+								with S merge (A:AWSAccount {AccountNo:$AccountNo})
 								with S,A merge (S)-[:Belongs_To_Account]->(A) with S
 								match (B:AWSRole) 
 								where 
-								B.Arn={RoleArn} with S,B 
+								B.Arn=$RoleArn with S,B 
 								merge 
-								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: {SourceRoleArn},DocumentVersion:{DocumentVersion},DocumentId:{DocumentId}})
+								(D:AWSPolicy:AWSAssumeRolePolicy {Name: "AssumeRolePolicy",SourceRoleArn: $SourceRoleArn,DocumentVersion:$DocumentVersion,
+								DocumentId:$DocumentId})
 								with S,B,D merge
 								(B)-[C:AWSPolicyAttachment]->(D) with S,D merge 
-								(D)-[E:AWSPolicyStatement {Action:{Action}}]->(S) 
+								(D)-[E:AWSPolicyStatement {Action:$Action}]->(S) 
 								set 
-								D.AccountNo={AccountNo},
-								E.SourceRoleArn={SourceRoleArn},
-								E.DocumentVersion={DocumentVersion},
-								E.DocumentId={DocumentId},
-								E.Effect={Effect},
-								E.ActionKey={ActionKey},
-								E.Action={Action},
-								E.Condition={Condition},
-								E.Sid={Sid},
-								E.ResourceKey={ResourceKey},
-								E.Resource={Resource},
-								E.Principal={Principal},
-								E.PrincipalKey={PrincipalKey},
-								E.Aaia_ExpandedAction={Aaia_ExpandedAction}
+								D.AccountNo=$AccountNo,
+								E.SourceRoleArn=$SourceRoleArn,
+								E.DocumentVersion=$DocumentVersion,
+								E.DocumentId=$DocumentId,
+								E.Effect=$Effect,
+								E.ActionKey=$ActionKey,
+								E.Action=$Action,
+								E.Condition=$Condition,
+								E.Sid=$Sid,
+								E.ResourceKey=$ResourceKey,
+								E.Resource=$Resource,
+								E.Principal=$Principal,
+								E.PrincipalKey=$PrincipalKey,
+								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
 								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalArn=principal,PrincipalName=arn.ARN(principal).name.split("/")[0],AccountNo=role_data['Arn'].split(":")[4],PrincipalAccountNo=arn.ARN(principal).account_number,RoleArn=role_data['Arn'],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
 										
@@ -978,21 +1004,21 @@ def getAWSInstanceProfiles(data_path,account_name):
 	
 def loadAWSInstanceProfiles(neo4j_session,data_path,account_name):
 	logger.info("[*] Loading AWS Role Instance Profiles into neo4j instance for AWS account '%s'",account_name)
-	ingest_role_instance_profiles='''merge (instanceprofile:AWSInstanceProfile {Arn:{Arn}}) 
+	ingest_role_instance_profiles='''merge (instanceprofile:AWSInstanceProfile {Arn:$Arn}) 
 									on match set 
-									instanceprofile.AccountNo={AccountNo},
-									instanceprofile.InstanceProfileName={InstanceProfileName},
-									instanceprofile.InstanceProfileId={InstanceProfileId}, 
-									instanceprofile.SourceRoleArn={SourceRoleArn},
-									instanceprofile.CreateDate={CreateDate},
-									instanceprofile.Path={Path}
+									instanceprofile.AccountNo=$AccountNo,
+									instanceprofile.InstanceProfileName=$InstanceProfileName,
+									instanceprofile.InstanceProfileId=$InstanceProfileId, 
+									instanceprofile.SourceRoleArn=$SourceRoleArn,
+									instanceprofile.CreateDate=$CreateDate,
+									instanceprofile.Path=$Path
 									on create set
-									instanceprofile.AccountNo={AccountNo},
-									instanceprofile.InstanceProfileName={InstanceProfileName},
-									instanceprofile.InstanceProfileId={InstanceProfileId}, 
-									instanceprofile.SourceRoleArn={SourceRoleArn},
-									instanceprofile.CreateDate={CreateDate},
-									instanceprofile.Path={Path}
+									instanceprofile.AccountNo=$AccountNo,
+									instanceprofile.InstanceProfileName=$InstanceProfileName,
+									instanceprofile.InstanceProfileId=$InstanceProfileId, 
+									instanceprofile.SourceRoleArn=$SourceRoleArn,
+									instanceprofile.CreateDate=$CreateDate,
+									instanceprofile.Path=$Path
 									'''
 	instance_profiles=getAWSInstanceProfiles(data_path,account_name)
 	
@@ -1067,45 +1093,45 @@ def loadAWSAccountRelations(neo4j_session,data_path,account_name):
 	logger.info("[*] Loading AWS Account Relation into neo4j instance for AWS account '%s'",account_name)
 
 	aws_account_relation='''
-						merge (A:AWSAccount {AccountNo:{AccountNo}})
-						set A.AccountName={AccountName}, 
-						A.Arn={Arn},
-						A.PasswordPolicy_MinimumPasswordLength={MinimumPasswordLength},
-						A.PasswordPolicy_RequireNumbers={RequireNumbers},
-						A.PasswordPolicy_RequireSymbols={RequireSymbols},
-						A.PasswordPolicy_RequireUppercaseCharacters={RequireUppercaseCharacters},
-						A.PasswordPolicy_RequireLowercaseCharacters={RequireLowercaseCharacters},
-						A.PasswordPolicy_AllowUsersToChangePassword={AllowUsersToChangePassword},
-						A.PasswordPolicy_ExpirePasswords={ExpirePasswords},
-						A.PasswordPolicy_MaxPasswordAge={MaxPasswordAge},
-						A.PasswordPolicy_PasswordReusePrevention={PasswordReusePrevention},
-						A.PasswordPolicy_HardExpiry={HardExpiry},
-						A.AccountSummary_UsersQuota={UsersQuota},
-						A.AccountSummary_GroupsQuota={GroupsQuota},
-						A.AccountSummary_InstanceProfiles={InstanceProfiles},
-						A.AccountSummary_SigningCertificatesPerUserQuota={SigningCertificatesPerUserQuota},
-						A.AccountSummary_AccountAccessKeysPresent={AccountAccessKeysPresent},
-						A.AccountSummary_RolesQuota={RolesQuota},
-						A.AccountSummary_RolePolicySizeQuota={RolePolicySizeQuota},
-						A.AccountSummary_AccountSigningCertificatesPresent={AccountSigningCertificatesPresent},
-						A.AccountSummary_Users={Users},
-						A.AccountSummary_ServerCertificatesQuota={ServerCertificatesQuota},
-						A.AccountSummary_ServerCertificates={ServerCertificates},
-						A.AccountSummary_AssumeRolePolicySizeQuota={AssumeRolePolicySizeQuota},
-						A.AccountSummary_Groups={Groups},
-						A.AccountSummary_MFADevicesInUse={MFADevicesInUse},
-						A.AccountSummary_Roles={Roles},
-						A.AccountSummary_AccountMFAEnabled={AccountMFAEnabled},
-						A.AccountSummary_MFADevices={MFADevices},
-						A.AccountSummary_GroupsPerUserQuota={GroupsPerUserQuota},
-						A.AccountSummary_GroupPolicySizeQuota={GroupPolicySizeQuota},
-						A.AccountSummary_InstanceProfilesQuota={InstanceProfilesQuota},
-						A.AccountSummary_AccessKeysPerUserQuota={AccessKeysPerUserQuota},
-						A.AccountSummary_Providers={Providers},
-						A.AccountSummary_UserPolicySizeQuota={UserPolicySizeQuota},
-						A.AccountAlias={AccountAlias}
+						merge (A:AWSAccount {AccountNo:$AccountNo})
+						set A.AccountName=$AccountName, 
+						A.Arn=$Arn,
+						A.PasswordPolicy_MinimumPasswordLength=$MinimumPasswordLength,
+						A.PasswordPolicy_RequireNumbers=$RequireNumbers,
+						A.PasswordPolicy_RequireSymbols=$RequireSymbols,
+						A.PasswordPolicy_RequireUppercaseCharacters=$RequireUppercaseCharacters,
+						A.PasswordPolicy_RequireLowercaseCharacters=$RequireLowercaseCharacters,
+						A.PasswordPolicy_AllowUsersToChangePassword=$AllowUsersToChangePassword,
+						A.PasswordPolicy_ExpirePasswords=$ExpirePasswords,
+						A.PasswordPolicy_MaxPasswordAge=$MaxPasswordAge,
+						A.PasswordPolicy_PasswordReusePrevention=$PasswordReusePrevention,
+						A.PasswordPolicy_HardExpiry=$HardExpiry,
+						A.AccountSummary_UsersQuota=$UsersQuota,
+						A.AccountSummary_GroupsQuota=$GroupsQuota,
+						A.AccountSummary_InstanceProfiles=$InstanceProfiles,
+						A.AccountSummary_SigningCertificatesPerUserQuota=$SigningCertificatesPerUserQuota,
+						A.AccountSummary_AccountAccessKeysPresent=$AccountAccessKeysPresent,
+						A.AccountSummary_RolesQuota=$RolesQuota,
+						A.AccountSummary_RolePolicySizeQuota=$RolePolicySizeQuota,
+						A.AccountSummary_AccountSigningCertificatesPresent=$AccountSigningCertificatesPresent,
+						A.AccountSummary_Users=$Users,
+						A.AccountSummary_ServerCertificatesQuota=$ServerCertificatesQuota,
+						A.AccountSummary_ServerCertificates=$ServerCertificates,
+						A.AccountSummary_AssumeRolePolicySizeQuota=$AssumeRolePolicySizeQuota,
+						A.AccountSummary_Groups=$Groups,
+						A.AccountSummary_MFADevicesInUse=$MFADevicesInUse,
+						A.AccountSummary_Roles=$Roles,
+						A.AccountSummary_AccountMFAEnabled=$AccountMFAEnabled,
+						A.AccountSummary_MFADevices=$MFADevices,
+						A.AccountSummary_GroupsPerUserQuota=$GroupsPerUserQuota,
+						A.AccountSummary_GroupPolicySizeQuota=$GroupPolicySizeQuota,
+						A.AccountSummary_InstanceProfilesQuota=$InstanceProfilesQuota,
+						A.AccountSummary_AccessKeysPerUserQuota=$AccessKeysPerUserQuota,
+						A.AccountSummary_Providers=$Providers,
+						A.AccountSummary_UserPolicySizeQuota=$UserPolicySizeQuota,
+						A.AccountAlias=$AccountAlias
 						with A 
-						match (B) where B.AccountNo={AccountNo} and 
+						match (B) where B.AccountNo=$AccountNo and 
 						not ("AWSAccount" in labels(B)) with A,B
 						merge (B)-[:Belongs_To_Account]->(A)'''
 	
@@ -1130,7 +1156,7 @@ def loadAWSAccountRelations(neo4j_session,data_path,account_name):
 	
 def loadAWSIAM(neo4j_uri,neo4j_user,neo4j_password,data_path,account_name):
 	neo4j_auth = (neo4j_user, neo4j_password)
-	neo4j_driver = GraphDatabase.driver( neo4j_uri, auth=neo4j_auth,)
+	neo4j_driver = GraphDatabase.driver( neo4j_uri, auth=neo4j_auth, encrypted=False)
 	with neo4j_driver.session() as neo4j_session:
 		#Load AWS Managed Policies
 		loadAWSManagedPolicies(neo4j_session,data_path,account_name)

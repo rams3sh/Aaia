@@ -75,7 +75,7 @@ def neo4jSessionDriver(config):
 	neo4j_user=config['neo4j_conf']['neo4j_user']
 	neo4j_password=config['neo4j_conf']['neo4j_password']
 	neo4j_auth = (neo4j_user, neo4j_password)
-	neo4j_driver = GraphDatabase.driver( neo4j_uri, auth=neo4j_auth,)
+	neo4j_driver = GraphDatabase.driver( neo4j_uri, auth=neo4j_auth, encrypted=False)
 	
 	return(neo4j_driver)
 

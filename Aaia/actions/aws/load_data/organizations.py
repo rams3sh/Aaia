@@ -41,30 +41,30 @@ def loadAWSServiceControlPolicy(neo4j_session,data_path,account_name):
 
     #This function loads all the Service Control Policies
     logger.info("[*] Loading AWS Service Control Policy into neo4j instance for AWS account '%s'", account_name)
-    ingest_aws_service_control_policy='''merge(scp:AWSPolicy:AWSServiceControlPolicy {Arn:{Arn}}) 
-                                    set scp.Id={Id},
-                                    scp.Arn={Arn},
-                                    scp.Name={Name},
-                                    scp.Description={Description},
-                                    scp.AwsManaged={AwsManaged},
-                                    scp.DocumentVersion={DocumentVersion},
-                                    scp.DocumentId={DocumentId} 
+    ingest_aws_service_control_policy='''merge(scp:AWSPolicy:AWSServiceControlPolicy {Arn:$Arn}) 
+                                    set scp.Id=$Id,
+                                    scp.Arn=$Arn,
+                                    scp.Name=$Name,
+                                    scp.Description=$Description,
+                                    scp.AwsManaged=$AwsManaged,
+                                    scp.DocumentVersion=$DocumentVersion,
+                                    scp.DocumentId=$DocumentId 
                                     with scp
-                                    merge (resource {Arn: {ResourceArn}}) set resource:AWSPolicyResource 
+                                    merge (resource {Arn: $ResourceArn}) set resource:AWSPolicyResource 
 								    with scp,resource 
                                     merge (scp)-[statement:AWSPolicyStatement 
-                                    { DocumentVersion:{DocumentVersion},
-								    DocumentId:{DocumentId},
-                                    Effect:{Effect} ,
-                                    ActionKey:{ActionKey},
-                                    Action:{Action},
-                                    Condition:{Condition},
-                                    Sid:{Sid},
-                                    ResourceKey:{ResourceKey},
-                                    Resource:{Resource},
-                                    Principal:{Principal},
-                                    PrincipalKey:{PrincipalKey},
-                                    Aaia_ExpandedAction: {Aaia_ExpandedAction}}]->(resource)
+                                    { DocumentVersion:$DocumentVersion,
+								    DocumentId:$DocumentId,
+                                    Effect:$Effect ,
+                                    ActionKey:$ActionKey,
+                                    Action:$Action,
+                                    Condition:$Condition,
+                                    Sid:$Sid,
+                                    ResourceKey:$ResourceKey,
+                                    Resource:$Resource,
+                                    Principal:$Principal,
+                                    PrincipalKey:$PrincipalKey,
+                                    Aaia_ExpandedAction: $Aaia_ExpandedAction}]->(resource)
 								'''
 
     policies=getAWSServiceControlPolicy(data_path,account_name)
@@ -129,7 +129,8 @@ def loadAWSOrganizationRootNode(neo4j_session,data_path,account_name):
 
     logger.info("[*] Loading AWS Organization into neo4j instance for AWS account '%s'", account_name)
 
-    ingest_aws_organization_root_node='''merge (org:AWSOrganization:AWSOrganizationOU {Id:{Id},Arn:{Arn},Name:{Name},PolicyType:{PolicyType},PolicyStatus:{PolicyStatus}})'''
+    ingest_aws_organization_root_node='''merge (org:AWSOrganization:AWSOrganizationOU {Id:$Id,Arn:$Arn,Name:$Name,
+    PolicyType:$PolicyType,PolicyStatus:$PolicyStatus})'''
     organization_root_node_details=getAWSOrganizationRootNode(data_path,account_name)
     neo4j_session.run(ingest_aws_organization_root_node,Id=organization_root_node_details['Id'],Name=organization_root_node_details['Name'],Arn=organization_root_node_details['Arn'],PolicyType=organization_root_node_details['PolicyType'],PolicyStatus=organization_root_node_details['PolicyStatus'])
 
@@ -151,15 +152,15 @@ def loadAWSOrganizationMasterAccount(neo4j_session,data_path,account_name):
     logger.info("[*] Loading AWS Organization Master Account into neo4j instance for AWS account '%s'", account_name)
 
     master_account_details=getAWSOrganizationMasterAccount(data_path,account_name)
-    ingest_master_account='''merge (account:AWSAccount {AccountNo:{AccountNo}})
+    ingest_master_account='''merge (account:AWSAccount {AccountNo:$AccountNo})
                             set account:AWSOrganizationMasterAccount, 
-                            account.OrganizationAccountArn={OrganizationAccountArn},
-                            account.OrganizationId={OrganizationId},
-                            account.OrganizationArn={OrganizationArn},
-                            account.FeatureSet={FeatureSet},
-                            account.AccountEmail={AccountEmail},
-                            account.AvailablePolicyType={AvailablePolicyType},
-                            account.AvailablePolicyStatus={AvailablePolicyStatus}
+                            account.OrganizationAccountArn=$OrganizationAccountArn,
+                            account.OrganizationId=$OrganizationId,
+                            account.OrganizationArn=$OrganizationArn,
+                            account.FeatureSet=$FeatureSet,
+                            account.AccountEmail=$AccountEmail,
+                            account.AvailablePolicyType=$AvailablePolicyType,
+                            account.AvailablePolicyStatus=$AvailablePolicyStatus
                             '''
     neo4j_session.run(ingest_master_account,AccountNo=master_account_details['MasterAccountId'],
                       OrganizationAccountArn=master_account_details['MasterAccountArn'],
@@ -186,10 +187,10 @@ def getAWSOrganizationOU(data_path,account_name):
 
 def loadAWSOrganizationOU(neo4j_session,data_path,account_name):
     logger.info("[*] Loading AWS Organization OUs into neo4j instance for AWS account '%s'", account_name)
-    ingest_aws_organization_ou='''merge (ou:AWSOrganizationOU {Arn:{Arn}})
-                                set ou.Id={Id},
-                                ou.Aaia_ParentOU={Aaia_ParentOU},
-                                ou.Name={Name}
+    ingest_aws_organization_ou='''merge (ou:AWSOrganizationOU {Arn:$Arn})
+                                set ou.Id=$Id,
+                                ou.Aaia_ParentOU=$Aaia_ParentOU,
+                                ou.Name=$Name
                                 '''
 
     ou_list=getAWSOrganizationOU(data_path,account_name)
@@ -220,14 +221,14 @@ def getAWSOrganizationAccounts(data_path,account_name):
 
 def loadAWSOrganizationAccounts(neo4j_session,data_path,account_name):
     logger.info("[*] Loading AWS Organization Accounts into neo4j instance for AWS account '%s'", account_name)
-    ingest_aws_organization_accounts=''' merge (account:AWSAccount {AccountNo:{AccountNo}})
-                            set account.OrganizationAccountArn={OrganizationAccountArn},
-                            account.AccountEmail={AccountEmail},
-                            account.AccountName={AccountName},
-                            account.Status={Status},
-                            account.JoinedMethod={JoinedMethod},
-                            account.JoinedTimestamp=datetime({JoinedTimestamp}),
-                            account.Aaia_ParentOU={Aaia_ParentOU}
+    ingest_aws_organization_accounts=''' merge (account:AWSAccount {AccountNo:$AccountNo})
+                            set account.OrganizationAccountArn=$OrganizationAccountArn,
+                            account.AccountEmail=$AccountEmail,
+                            account.AccountName=$AccountName,
+                            account.Status=$Status,
+                            account.JoinedMethod=$JoinedMethod,
+                            account.JoinedTimestamp=datetime($JoinedTimestamp),
+                            account.Aaia_ParentOU=$Aaia_ParentOU
                                     '''
     organization_accounts_details=getAWSOrganizationAccounts(data_path,account_name)
 
@@ -295,17 +296,17 @@ def getAWSOUAccountPolicyRelations(data_path,account_name):
 def loadAWSOUAccountPolicyRelations(neo4j_session,data_path,account_name):
     logger.info("[*] Loading AWS Organization OU Account Policy Relations into neo4j instance for AWS account '%s'",account_name)
     ingest_aws_policy_account_relations='''
-                                        match (account:AWSAccount) where account.OrganizationAccountArn={Arn}
+                                        match (account:AWSAccount) where account.OrganizationAccountArn=$Arn
                                         with account 
-                                        match (policy:AWSServiceControlPolicy) where policy.Arn={PolicyArn}
+                                        match (policy:AWSServiceControlPolicy) where policy.Arn=$PolicyArn
                                         with account,policy
                                         merge (account)-[:AWSPolicyAttachment]->(policy)
                                         '''
 
     ingest_aws_policy_ou_relations = '''
-                                        match (ou:AWSOrganizationOU) where ou.Arn={Arn}
+                                        match (ou:AWSOrganizationOU) where ou.Arn=$Arn
                                         with ou
-                                        match (policy:AWSServiceControlPolicy) where policy.Arn={PolicyArn}
+                                        match (policy:AWSServiceControlPolicy) where policy.Arn=$PolicyArn
                                         with ou,policy
                                         merge (ou)-[:AWSPolicyAttachment]->(policy)
                                     '''
@@ -326,7 +327,7 @@ def loadAWSOUAccountPolicyRelations(neo4j_session,data_path,account_name):
 
 def loadAWSOrganizations(neo4j_uri,neo4j_user,neo4j_password,data_path,account_name):
     neo4j_auth = (neo4j_user, neo4j_password)
-    neo4j_driver = GraphDatabase.driver(neo4j_uri, auth=neo4j_auth, )
+    neo4j_driver = GraphDatabase.driver( neo4j_uri, auth=neo4j_auth, encrypted=False)
     with neo4j_driver.session() as neo4j_session:
 
         #Loads all the Service Control Policy in the Organization
