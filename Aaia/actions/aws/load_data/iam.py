@@ -1083,10 +1083,15 @@ def getAWSAccountAliases(data_path,account_name):
 		
 #Gets the AWS AccountNo of current processing Account
 def getAWSAccountNo(data_path,account_name):
-	#Getting the Current AWS Account Number by getting the ARN of the first user apparing in iam-get-account-authorization-details.json
-	jqQuery=".UserDetailList[0].Arn"
-	account_number=getAWSIamAccountAuthorizationDetailsInfo(data_path,account_name,jqQuery)[0].split(":")[4]
-	return account_number
+	jqQuery=".Account"
+	logger.debug("[*] Getting AWS AccountNo from '%s' for AWS Account '%s' for jq Query '%s'",
+				 data_path + account_name + '/sts/sts-get-caller-identity.json', account_name, jqQuery)
+	with open(os.path.join(data_path, account_name, 'sts','sts-get-caller-identity.json'),'r') as filein:
+		file_content = json.loads(filein.read())
+	logger.debug("[*] Completed getting AWS AccountNo from '%s' for AWS Account '%s' for jq Query '%s'",
+				 data_path + account_name + '/sts/sts-get-caller-identity.json', account_name, jqQuery)
+
+	return pyjq.all(jqQuery, file_content)
 
 
 def loadAWSAccountRelations(neo4j_session,data_path,account_name):

@@ -12,12 +12,13 @@ mkdir offline_data 2>/dev/null
 mkdir ./offline_data/aws 2>/dev/null
 mkdir ./offline_data/aws/$profile 2> /dev/null
 mkdir ./offline_data/aws/$profile/iam 2>/dev/null
-
-
+mkdir ./offline_data/aws/$profile/sts 2>/dev/null
 
 #Generating Credential Report , this will be exported by end of all the commands
 python3 -m awscli iam generate-credential-report --profile $profile >/dev/null
 
+echo "[*] Running STS get-caller-identity!!"
+python3 -m awscli sts get-caller-identity --profile $profile > ./offline_data/aws/$profile/sts/sts-get-caller-identity.json
 echo "[*] Running IAM get-account-authorization-details!!"
 python3 -m awscli iam get-account-authorization-details --profile $profile > ./offline_data/aws/$profile/iam/iam-get-account-authorization-details.json
 echo "[*] Running IAM list-users!!"
