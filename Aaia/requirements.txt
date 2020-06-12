@@ -6,3 +6,5 @@ urllib3==1.25.8
 
 # Dependencies required for Aaia data collector
 awscli==1.18.28
+
+rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
