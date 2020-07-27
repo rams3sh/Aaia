@@ -30,10 +30,27 @@ Since "Aaia" (this tool) also does more or less the same, hence the name.
 
 ### Install the neo4j Database
 
+#### 1. Installation using Docker (Recommended)
+
+i. Install Docker Runtime
+Check the official documentation regarding installation [here](https://docs.docker.com/engine/install/).
+
+ii. Run the following docker command 
+```
+docker run -p 7687:7687 -p 7474:7474 -v `pwd`/neo4j/data:/data -v `pwd`/neo4j/logs:/logs -e NEO4J_AUTH=neo4j/test neo4j:3.5.17
+```
+Note : Above command persists neo4j data in your disk. However, feel free to modify for your needs and change the auth according to your preference. The credentials provided here should be configured in `Aaia.conf` file as well.
+
+#### 2. Installation using binary
+
 Instructions [here](https://neo4j.com/docs/operations-manual/current/installation/)
 
 Setup the username , password and bolt connection uri in Aaia.conf file. 
 An example format is given in Aaia.conf file already.
+
+**Note:** 
+Aaia has been tested with neo4j v 3.5.17. It may work with older versions. 
+Neo4j has introduced some new changes post v 4.0 which has been found not compatible with Aaia's current codebase. 
 
 
 ### Install OS dependency ###
@@ -57,12 +74,13 @@ cd Aaia/
 ### Create a virtual environment
 python3 -m venv env
 
+
 ### Activate the virtual environment
 source env/bin/activate  
 
 **Note:** 
 Aaia depends on pyjq library which is not stable in windows currently. 
-Hence Aaia is not supported for Windows OS.
+Hence Aaia is not supported for Windows OS. 
 
 ### Install the dependencies
 
@@ -134,8 +152,6 @@ python Aaia.py -n <profile_name> -a load_data
 
 #### Note: ####
 Please ensure you do not have profile as "all" in the credentials file as it may conflict with the argument. :P 
-
-
 
 Now we are ready to use Aaia.
 

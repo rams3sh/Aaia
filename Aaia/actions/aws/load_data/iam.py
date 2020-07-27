@@ -1,4 +1,4 @@
-from neo4j.v1 import GraphDatabase
+from neo4j import GraphDatabase
 from collections import OrderedDict
 import pyjq
 import json
@@ -11,6 +11,7 @@ from io import StringIO
 import csv
 import sys
 from lib.aws_common import getPolicyDocumentDetails,getPolicyStatementDetails
+
 
 __description__="loads the aws iam details into neo4j instance"
 
@@ -241,7 +242,6 @@ def getCredentialReportDetails(data_path,account_name,user_arn):
 		credential_report=base64.b64decode(file_content['Content'])
 		#Converting Bytes to String
 		credential_report=credential_report.decode("utf-8")
-		
 		data=StringIO(credential_report)   
 		reader = csv.DictReader(data, delimiter=',')
 		
@@ -437,8 +437,33 @@ def loadAWSUserNodes(neo4j_session,data_path,account_name):
 						A.Cert1LastRotated=$Cert1LastRotated,
 						A.Cert2Active=$Cert2Active,
 						A.Cert2LastRotated=$Cert2LastRotated'''
-	
-	neo4j_session.run(ingest_aws_root_user,UserName="root",AccountNo=account_number,Arn=root_arn,UserId="",CreateDate=credential_report_data['UserCreationTime'],PasswordLastUsed=credential_report_data['PasswordLastUsed'],Tags="",Path="",PasswordEnabled=credential_report_data['PasswordEnabled'],PasswordLastChanged=credential_report_data['PasswordLastChanged'],PasswordNextRotation=credential_report_data['PasswordNextRotation'],MfaActive=credential_report_data['MfaActive'],AccessKey1Active=credential_report_data['AccessKey1Active'],AccessKey1LastRotated=credential_report_data['AccessKey1LastRotated'],AccessKey1LastUsedDate=credential_report_data['AccessKey1LastUsedDate'],AccessKey1LastUsedRegion=credential_report_data['AccessKey1LastUsedRegion'],AccessKey1LastUsedService=credential_report_data['AccessKey1LastUsedService'],AccessKey2Active=credential_report_data['AccessKey2Active'],AccessKey2LastRotated=credential_report_data['AccessKey2LastRotated'],AccessKey2LastUsedDate=credential_report_data['AccessKey2LastUsedDate'],AccessKey2LastUsedRegion=credential_report_data['AccessKey2LastUsedRegion'],AccessKey2LastUsedService=credential_report_data['AccessKey2LastUsedService'],Cert1Active=credential_report_data['Cert1Active'],Cert1LastRotated=credential_report_data['Cert1LastRotated'],Cert2Active=credential_report_data['Cert2Active'],Cert2LastRotated=credential_report_data['Cert2LastRotated'])
+	neo4j_session.run(ingest_aws_root_user,
+		Arn=root_arn,
+		UserName="root",
+		AccountNo=account_number,
+		UserId="",
+		CreateDate=credential_report_data['UserCreationTime'],
+		PasswordLastUsed=credential_report_data['PasswordLastUsed'],
+		Tags="",
+		Path="",
+		PasswordEnabled=credential_report_data['PasswordEnabled'],
+		PasswordLastChanged=credential_report_data['PasswordLastChanged'],
+		PasswordNextRotation=credential_report_data['PasswordNextRotation'],
+		MfaActive=credential_report_data['MfaActive'],
+		AccessKey1Active=credential_report_data['AccessKey1Active'],
+		AccessKey1LastRotated=credential_report_data['AccessKey1LastRotated'],
+		AccessKey1LastUsedDate=credential_report_data['AccessKey1LastUsedDate'],
+		AccessKey1LastUsedRegion=credential_report_data['AccessKey1LastUsedRegion'],
+		AccessKey1LastUsedService=credential_report_data['AccessKey1LastUsedService'],
+		AccessKey2Active=credential_report_data['AccessKey2Active'],
+		AccessKey2LastRotated=credential_report_data['AccessKey2LastRotated'],
+		AccessKey2LastUsedDate=credential_report_data['AccessKey2LastUsedDate'],
+		AccessKey2LastUsedRegion=credential_report_data['AccessKey2LastUsedRegion'],
+		AccessKey2LastUsedService=credential_report_data['AccessKey2LastUsedService'],
+		Cert1Active=credential_report_data['Cert1Active'],
+		Cert1LastRotated=credential_report_data['Cert1LastRotated'],
+		Cert2Active=credential_report_data['Cert2Active'],
+		Cert2LastRotated=credential_report_data['Cert2LastRotated'])
 	logger.debug("[*] Completed loading of AWS User 'root' into neo4j for AWS account '%s' ",account_name)
 
 	logger.info("[*] Completed loading of AWS Users into neo4j instance for AWS account '%s'", account_name)
@@ -957,8 +982,9 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 								
 							#In case of AWS SAML Provider
 							elif arn.ARN(principal).account_number !=None:
-								ingest_assume_role_principal='''merge (S:AWSSAMLProvider {Arn:$PrincipalArn, 
-								PrincipalAccountNo:$AccountNo}) set S.Name=$PrincipalName}, S:AWSPolicyPrincipal:AWSFederated
+								ingest_assume_role_principal='''
+								merge (S:AWSSAMLProvider {Arn:$PrincipalArn, 
+								PrincipalAccountNo:$AccountNo}) set S.Name=$PrincipalName, S:AWSPolicyPrincipal:AWSFederated
 								with S merge (A:AWSAccount {AccountNo:$AccountNo})
 								with S,A merge (S)-[:Belongs_To_Account]->(A) with S
 								match (B:AWSRole) 
@@ -986,7 +1012,25 @@ def loadAWSRolePrincipalRelations(neo4j_session,data_path,account_name):
 								E.PrincipalKey=$PrincipalKey,
 								E.Aaia_ExpandedAction=$Aaia_ExpandedAction
 								'''
-								neo4j_session.run(ingest_assume_role_principal,Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],PrincipalArn=principal,PrincipalName=arn.ARN(principal).name.split("/")[0],AccountNo=role_data['Arn'].split(":")[4],PrincipalAccountNo=arn.ARN(principal).account_number,RoleArn=role_data['Arn'],SourceRoleArn=role_data['Arn'],DocumentVersion=policy_document_details['Version'],DocumentId=policy_document_details['Id'],Effect=policy_statement_details['Effect'],ActionKey=policy_statement_details['ActionKey'],Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Condition=policy_statement_details['Condition'],Sid=policy_statement_details['Sid'],ResourceKey=policy_statement_details['ResourceKey'],Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),Principal=str(json.dumps(statement_principal)),PrincipalKey=policy_statement_details['PrincipalKey'])
+								neo4j_session.run(ingest_assume_role_principal,
+									Aaia_ExpandedAction=policy_statement_details['Aaia_ExpandedAction'],
+									PrincipalArn=principal,
+									PrincipalName=arn.ARN(principal).name.split("/")[0],
+									AccountNo=role_data['Arn'].split(":")[4],
+									PrincipalAccountNo=arn.ARN(principal).account_number,
+									RoleArn=role_data['Arn'],
+									SourceRoleArn=role_data['Arn'],
+									DocumentVersion=policy_document_details['Version'],
+									DocumentId=policy_document_details['Id'],
+									Effect=policy_statement_details['Effect'],
+									ActionKey=policy_statement_details['ActionKey'],
+									Action=str(statement_action).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),
+									Condition=policy_statement_details['Condition'],
+									Sid=policy_statement_details['Sid'],
+									ResourceKey=policy_statement_details['ResourceKey'],
+									Resource=str(statement_resource).replace("'","").replace("{","").replace("}","").replace("[","").replace("]",""),
+									Principal=str(json.dumps(statement_principal)),
+									PrincipalKey=policy_statement_details['PrincipalKey'])
 										
 							else:
 								raise ValueError('Unknown AWSPrincipal : "Federated":'+principal)
@@ -1091,7 +1135,7 @@ def getAWSAccountNo(data_path,account_name):
 	logger.debug("[*] Completed getting AWS AccountNo from '%s' for AWS Account '%s' for jq Query '%s'",
 				 data_path + account_name + '/sts/sts-get-caller-identity.json', account_name, jqQuery)
 
-	return pyjq.all(jqQuery, file_content)
+	return pyjq.all(jqQuery, file_content)[0]
 
 
 def loadAWSAccountRelations(neo4j_session,data_path,account_name):
