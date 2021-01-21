@@ -8,3 +8,4 @@ urllib3==1.25.9
 awscli==1.18.28
 
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
+pyyaml>=5.4 # not directly required, pinned by Snyk to avoid a vulnerability
