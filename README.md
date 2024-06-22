@@ -1,3 +1,6 @@
+# NOTE
+This repository is not under active development. However, I am open to accepting PRs. Aaia still works as there has been no significant changes in terms of AWS APIs it uses to collect data.
+
 # Aaia
 (A)n(a)lysis  of (I)dentity and (A)ccess
 
