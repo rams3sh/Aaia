@@ -9,3 +9,4 @@ awscli==1.18.28
 
 rsa>=4.1 # not directly required, pinned by Snyk to avoid a vulnerability
 pyyaml>=5.4 # not directly required, pinned by Snyk to avoid a vulnerability
+pyasn1>=0.6.2 # not directly required, pinned by Snyk to avoid a vulnerability
